@@ -9,6 +9,7 @@ import (
 	"github.com/ntp7758/task-management/internal/auth/repository"
 	"github.com/ntp7758/task-management/internal/auth/routes"
 	"github.com/ntp7758/task-management/internal/auth/service"
+	"github.com/ntp7758/task-management/pkg/config"
 	"github.com/ntp7758/task-management/pkg/db"
 )
 
@@ -18,6 +19,7 @@ const (
 
 func main() {
 	app := fiber.New()
+	config.FiberConfig(app)
 
 	client, err := db.NewMongoDBConnection()
 	if err != nil {
