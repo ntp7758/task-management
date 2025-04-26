@@ -36,7 +36,7 @@ func (s *authService) Signup(username, password string) error {
 	}
 
 	auth := model.Auth{
-		ID:           primitive.ObjectID{},
+		ID:           primitive.NewObjectID(),
 		CreatedAt:    time.Time{},
 		UpdatedAt:    time.Time{},
 		Username:     username,

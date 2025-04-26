@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 
 	"github.com/ntp7758/task-management/internal/auth/model"
 	"github.com/ntp7758/task-management/pkg/db"
@@ -33,6 +34,11 @@ func NewAuthRepository(con db.MongoDBClient) (AuthRepository, error) {
 }
 
 func (r *authRepository) Insert(auth model.Auth) (*mongo.InsertOneResult, error) {
+	_, err := r.FindByID(auth.ID.Hex())
+	if err == nil {
+		return nil, errors.New("some error")
+	}
+
 	result, err := r.collection.InsertOne(r.ctx, auth)
 	if err != nil {
 		return nil, err

@@ -12,7 +12,6 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
-	"github.com/ntp7758/task-management/pkg/middleware"
 )
 
 const (
@@ -47,6 +46,4 @@ func FiberConfig(app *fiber.App) {
 	}))
 
 	app.Use(helmet.New())
-
-	app.Use(middleware.AuthMiddleware)
 }

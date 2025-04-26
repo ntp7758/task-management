@@ -3,6 +3,7 @@ package routes
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/ntp7758/task-management/internal/auth/handler"
+	"github.com/ntp7758/task-management/pkg/middleware"
 )
 
 type Routes interface {
@@ -22,4 +23,5 @@ func (r *authRoutes) Install(app *fiber.App) {
 
 	app.Post(prefix+"/sign-up", r.authHandler.Signup)
 	app.Post(prefix+"/login", r.authHandler.Login)
+	app.Get(prefix+"/check-token", middleware.AuthMiddleware, r.authHandler.CheckToken)
 }

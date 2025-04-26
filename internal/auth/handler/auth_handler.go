@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"strings"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/ntp7758/task-management/internal/auth/model"
 	"github.com/ntp7758/task-management/internal/auth/service"
@@ -10,6 +12,7 @@ import (
 type AuthHandler interface {
 	Signup(c *fiber.Ctx) error
 	Login(c *fiber.Ctx) error
+	CheckToken(c *fiber.Ctx) error
 }
 
 type authHandler struct {
@@ -25,6 +28,10 @@ func (h *authHandler) Signup(c *fiber.Ctx) error {
 	err := c.BodyParser(&req)
 	if err != nil {
 		return response.FiberResponse(c, fiber.StatusBadRequest, err.Error(), nil)
+	}
+
+	if strings.TrimSpace(req.Username) == "" || strings.TrimSpace(req.Password) == "" || strings.TrimSpace(req.ConfirmPassword) == "" {
+		return response.FiberResponse(c, fiber.StatusBadRequest, "have empty input", nil)
 	}
 
 	if req.Password != req.ConfirmPassword {
@@ -53,5 +60,16 @@ func (h *authHandler) Login(c *fiber.Ctx) error {
 	return response.FiberResponse(c, fiber.StatusOK, "success", map[string]string{
 		"token":        token,
 		"refreshToten": refreshToten,
+	})
+}
+
+func (h *authHandler) CheckToken(c *fiber.Ctx) error {
+	id, ok := c.Locals("id").(string)
+	if !ok {
+		return response.FiberResponse(c, fiber.StatusUnauthorized, "invalid token", nil)
+	}
+
+	return response.FiberResponse(c, fiber.StatusOK, "success", map[string]string{
+		"id": id,
 	})
 }
