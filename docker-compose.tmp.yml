@@ -1,0 +1,26 @@
+version: "3.9"
+
+services:
+  mongo_db:
+    image: mongo:8
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: user
+      MONGO_INITDB_ROOT_PASSWORD: password
+    ports:
+      - "9090:27017"
+    volumes:
+      - ./db_data:/data/db
+  
+  app_api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mongo_db
+    environment:
+      - DATABASE_URL=mongodb://user:password@mongo_db:27017
+      - DATABASE_NAME=myDB
+    restart: always

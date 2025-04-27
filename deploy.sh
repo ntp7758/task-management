@@ -1,5 +1,5 @@
 # Stop old service
-docker compose --env-file project.env down
+docker compose -f docker-compose.tmp.yml --env-file project.env down
 
 # Start new service
-docker compose --env-file project.env up --build -d
+docker compose -f docker-compose.tmp.yml --env-file project.env up --build -d
