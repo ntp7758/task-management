@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"os"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -41,11 +42,11 @@ func NewMongoDBConnection() (MongoDBClient, error) {
 }
 
 func getURLLocal() (string, error) {
-	return "DB_URL", nil
+	return os.Getenv("DATABASE_URL"), nil
 }
 
 func (c *mongoDBClient) DB() (*mongo.Database, error) {
-	return c.client.Database("DATABASE_NAME"), nil
+	return c.client.Database(os.Getenv("DATABASE_NAME")), nil
 }
 
 func (c *mongoDBClient) Close() error {
