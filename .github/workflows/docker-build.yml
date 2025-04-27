@@ -23,7 +23,7 @@ jobs:
               run: go test ./...
             
             - name: Make file to executable
-              run: chmod +x deploy.sh
+              run: chmod +x deploy.tmp.sh
             
             - name: Build project
-              run: ./deploy.sh
+              run: ./deploy.tmp.sh
