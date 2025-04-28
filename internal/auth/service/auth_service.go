@@ -11,60 +11,66 @@ import (
 )
 
 type AuthService interface {
-	Signup(username, password string) error
-	Login(username, password string) (string, string, error)
+	Signup(username, password string) (string, error)
+	Login(username, password string) (string, error)
+	CreateToken(authId string) (string, string, error)
 }
 
 type authService struct {
-	AuthRepo repository.AuthRepository
+	authRepo repository.AuthRepository
 }
 
 func NewAuthService(authRepo repository.AuthRepository) AuthService {
 	return &authService{authRepo}
 }
 
-func (s *authService) Signup(username, password string) error {
+func (s *authService) Signup(username, password string) (string, error) {
 
-	_, err := s.AuthRepo.FindByUsername(username)
+	_, err := s.authRepo.FindByUsername(username)
 	if err == nil {
-		return errors.New("username is already exists")
+		return "", errors.New("username is already exists")
 	}
 
 	hash, err := security.HashPassword(password)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	auth := model.Auth{
 		ID:           primitive.NewObjectID(),
-		CreatedAt:    time.Time{},
-		UpdatedAt:    time.Time{},
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
 		Username:     username,
 		Password:     hash,
 		Role:         model.AuthRoleUser,
 		RefreshToken: "",
 	}
 
-	_, err = s.AuthRepo.Insert(auth)
+	_, err = s.authRepo.Insert(auth)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return auth.ID.Hex(), nil
 }
 
-func (s *authService) Login(username, password string) (string, string, error) {
-	auth, err := s.AuthRepo.FindByUsername(username)
+func (s *authService) Login(username, password string) (string, error) {
+	auth, err := s.authRepo.FindByUsername(username)
 	if err != nil {
-		return "", "", errors.New("invalid username")
+		return "", errors.New("invalid username")
 	}
 
 	err = security.CheckPasswordHash(password, auth.Password)
 	if err != nil {
-		return "", "", errors.New("unauthorized")
+		return "", errors.New("unauthorized")
 	}
 
-	token, err := security.GenerateJWTToken(auth.ID.Hex(), auth.Role)
+	return auth.ID.Hex(), err
+}
+
+func (s *authService) CreateToken(authId string) (string, string, error) {
+
+	token, err := security.GenerateJWTToken(authId, "")
 	if err != nil {
 		return "", "", err
 	}

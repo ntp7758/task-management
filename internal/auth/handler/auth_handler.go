@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/ntp7758/task-management/internal/auth/model"
 	"github.com/ntp7758/task-management/internal/auth/service"
+	userService "github.com/ntp7758/task-management/internal/user/service"
 	"github.com/ntp7758/task-management/pkg/response"
 )
 
@@ -17,10 +18,11 @@ type AuthHandler interface {
 
 type authHandler struct {
 	authService service.AuthService
+	userService userService.UserService
 }
 
-func NewAuthHandler(s service.AuthService) AuthHandler {
-	return &authHandler{s}
+func NewAuthHandler(authService service.AuthService, userService userService.UserService) AuthHandler {
+	return &authHandler{authService, userService}
 }
 
 func (h *authHandler) Signup(c *fiber.Ctx) error {
@@ -38,7 +40,12 @@ func (h *authHandler) Signup(c *fiber.Ctx) error {
 		return response.FiberResponse(c, fiber.StatusBadRequest, "password and confirm is not invalid", nil)
 	}
 
-	err = h.authService.Signup(req.Username, req.Password)
+	authId, err := h.authService.Signup(req.Username, req.Password)
+	if err != nil {
+		return response.FiberResponse(c, fiber.StatusInternalServerError, err.Error(), nil)
+	}
+
+	err = h.userService.Create(authId)
 	if err != nil {
 		return response.FiberResponse(c, fiber.StatusInternalServerError, err.Error(), nil)
 	}
@@ -52,7 +59,18 @@ func (h *authHandler) Login(c *fiber.Ctx) error {
 	if err != nil {
 		return response.FiberResponse(c, fiber.StatusBadRequest, err.Error(), nil)
 	}
-	token, refreshToten, err := h.authService.Login(req.Username, req.Password)
+
+	authId, err := h.authService.Login(req.Username, req.Password)
+	if err != nil {
+		return response.FiberResponse(c, fiber.StatusInternalServerError, err.Error(), nil)
+	}
+
+	user, err := h.userService.GetByAuthId(authId)
+	if err != nil {
+		return response.FiberResponse(c, fiber.StatusInternalServerError, err.Error(), nil)
+	}
+
+	token, refreshToten, err := h.authService.CreateToken(user.ID.Hex())
 	if err != nil {
 		return response.FiberResponse(c, fiber.StatusInternalServerError, err.Error(), nil)
 	}

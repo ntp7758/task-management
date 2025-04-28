@@ -9,6 +9,10 @@ import (
 	"github.com/ntp7758/task-management/internal/auth/repository"
 	"github.com/ntp7758/task-management/internal/auth/routes"
 	"github.com/ntp7758/task-management/internal/auth/service"
+	userHandler "github.com/ntp7758/task-management/internal/user/handler"
+	userRepo "github.com/ntp7758/task-management/internal/user/repository"
+	userRoute "github.com/ntp7758/task-management/internal/user/routes"
+	userService "github.com/ntp7758/task-management/internal/user/service"
 	"github.com/ntp7758/task-management/pkg/config"
 	"github.com/ntp7758/task-management/pkg/db"
 )
@@ -31,14 +35,22 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	userRepo, err := userRepo.NewUserRepository(client)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	authService := service.NewAuthService(authRepo)
+	userService := userService.NewUserService(userRepo)
 
-	authHandler := handler.NewAuthHandler(authService)
+	authHandler := handler.NewAuthHandler(authService, userService)
+	userHandler := userHandler.NewUserHandler(userService)
 
 	authRoute := routes.NewAuthRoute(authHandler)
+	userRoute := userRoute.NewUserRoute(userHandler)
 
 	authRoute.Install(app)
+	userRoute.Install(app)
 
 	app.Listen(fmt.Sprintf(":%s", port))
 }
